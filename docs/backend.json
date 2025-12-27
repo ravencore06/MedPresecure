@@ -1,0 +1,319 @@
+{
+  "entities": {
+    "Patient": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Patient",
+      "type": "object",
+      "description": "Represents a patient using the application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Patient entity."
+        },
+        "aadhaarNumber": {
+          "type": "string",
+          "description": "Patient's Aadhaar number (used as primary identifier)."
+        },
+        "name": {
+          "type": "string",
+          "description": "Patient's full name."
+        },
+        "dateOfBirth": {
+          "type": "string",
+          "description": "Patient's date of birth.",
+          "format": "date-time"
+        },
+        "gender": {
+          "type": "string",
+          "description": "Patient's gender."
+        },
+        "contactNumber": {
+          "type": "string",
+          "description": "Patient's contact phone number."
+        },
+        "address": {
+          "type": "string",
+          "description": "Patient's address."
+        }
+      },
+      "required": [
+        "id",
+        "aadhaarNumber",
+        "name"
+      ]
+    },
+    "Prescription": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Prescription",
+      "type": "object",
+      "description": "Represents a medical prescription.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Prescription entity."
+        },
+        "patientId": {
+          "type": "string",
+          "description": "Reference to Patient. (Relationship: Patient 1:N Prescription)"
+        },
+        "doctorId": {
+          "type": "string",
+          "description": "Reference to Doctor. (Relationship: Doctor 1:N Prescription)"
+        },
+        "medicineName": {
+          "type": "string",
+          "description": "Name of the prescribed medicine."
+        },
+        "dosage": {
+          "type": "string",
+          "description": "Dosage of the medicine."
+        },
+        "frequency": {
+          "type": "string",
+          "description": "Frequency of medicine intake (e.g., twice daily)."
+        },
+        "startDate": {
+          "type": "string",
+          "description": "Start date of the prescription.",
+          "format": "date-time"
+        },
+        "endDate": {
+          "type": "string",
+          "description": "End date of the prescription.",
+          "format": "date-time"
+        },
+        "notes": {
+          "type": "string",
+          "description": "Additional notes about the prescription."
+        }
+      },
+      "required": [
+        "id",
+        "patientId",
+        "medicineName",
+        "dosage",
+        "frequency",
+        "startDate"
+      ]
+    },
+    "Appointment": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Appointment",
+      "type": "object",
+      "description": "Represents a medical appointment.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Appointment entity."
+        },
+        "patientId": {
+          "type": "string",
+          "description": "Reference to Patient. (Relationship: Patient 1:N Appointment)"
+        },
+        "doctorId": {
+          "type": "string",
+          "description": "Reference to Doctor. (Relationship: Doctor 1:N Appointment)"
+        },
+        "appointmentDateTime": {
+          "type": "string",
+          "description": "Date and time of the appointment.",
+          "format": "date-time"
+        },
+        "type": {
+          "type": "string",
+          "description": "Type of appointment (e.g., Video Consultation, In-person)."
+        },
+        "notes": {
+          "type": "string",
+          "description": "Notes about the appointment."
+        }
+      },
+      "required": [
+        "id",
+        "patientId",
+        "doctorId",
+        "appointmentDateTime",
+        "type"
+      ]
+    },
+    "Doctor": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Doctor",
+      "type": "object",
+      "description": "Represents a doctor in the system.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Doctor entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "Doctor's full name."
+        },
+        "specialization": {
+          "type": "string",
+          "description": "Doctor's area of specialization."
+        },
+        "contactNumber": {
+          "type": "string",
+          "description": "Doctor's contact phone number."
+        },
+        "email": {
+          "type": "string",
+          "description": "Doctor's email address.",
+          "format": "email"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "specialization"
+      ]
+    },
+    "Upload": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Upload",
+      "type": "object",
+      "description": "Represents a file uploaded by a patient.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Upload entity."
+        },
+        "patientId": {
+          "type": "string",
+          "description": "Reference to Patient. (Relationship: Patient 1:N Upload)"
+        },
+        "fileName": {
+          "type": "string",
+          "description": "Name of the uploaded file."
+        },
+        "fileType": {
+          "type": "string",
+          "description": "Type of the uploaded file (e.g., PDF, JPG)."
+        },
+        "uploadDateTime": {
+          "type": "string",
+          "description": "Date and time of the upload.",
+          "format": "date-time"
+        },
+        "fileUrl": {
+          "type": "string",
+          "description": "URL of the uploaded file in Firebase Storage.",
+          "format": "uri"
+        }
+      },
+      "required": [
+        "id",
+        "patientId",
+        "fileName",
+        "fileType",
+        "uploadDateTime",
+        "fileUrl"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/patients/{patientId}",
+        "definition": {
+          "entityName": "Patient",
+          "schema": {
+            "$ref": "#/backend/entities/Patient"
+          },
+          "description": "Stores patient information.  The patientId is the user's UID from Firebase Auth.",
+          "params": [
+            {
+              "name": "patientId",
+              "description": "The UID of the authenticated user (patient)."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/patients/{patientId}/prescriptions/{prescriptionId}",
+        "definition": {
+          "entityName": "Prescription",
+          "schema": {
+            "$ref": "#/backend/entities/Prescription"
+          },
+          "description": "Stores prescriptions for a specific patient. Uses path-based ownership for security.",
+          "params": [
+            {
+              "name": "patientId",
+              "description": "The UID of the authenticated user (patient)."
+            },
+            {
+              "name": "prescriptionId",
+              "description": "The unique ID of the prescription."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/patients/{patientId}/appointments/{appointmentId}",
+        "definition": {
+          "entityName": "Appointment",
+          "schema": {
+            "$ref": "#/backend/entities/Appointment"
+          },
+          "description": "Stores appointments for a specific patient. Uses path-based ownership for security.",
+          "params": [
+            {
+              "name": "patientId",
+              "description": "The UID of the authenticated user (patient)."
+            },
+            {
+              "name": "appointmentId",
+              "description": "The unique ID of the appointment."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/patients/{patientId}/uploads/{uploadId}",
+        "definition": {
+          "entityName": "Upload",
+          "schema": {
+            "$ref": "#/backend/entities/Upload"
+          },
+          "description": "Stores file uploads for a specific patient. Uses path-based ownership for security.",
+          "params": [
+            {
+              "name": "patientId",
+              "description": "The UID of the authenticated user (patient)."
+            },
+            {
+              "name": "uploadId",
+              "description": "The unique ID of the upload."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/doctors/{doctorId}",
+        "definition": {
+          "entityName": "Doctor",
+          "schema": {
+            "$ref": "#/backend/entities/Doctor"
+          },
+          "description": "Stores information about doctors in the system.",
+          "params": [
+            {
+              "name": "doctorId",
+              "description": "The unique ID of the doctor."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore structure is designed to facilitate a secure and scalable Patient Health Dashboard application. It prioritizes authorization independence by using path-based ownership for patient-specific data (prescriptions, appointments, uploads) and avoids hierarchical authorization dependencies. This structure makes security rules simpler and more robust, enabling atomic operations (transactions/batches) and easier debugging. The use of path-based ownership (e.g., `/users/{userId}/prescriptions/{prescriptionId}`) ensures that only the authenticated patient can access their own data, enforcing a strong QAP. The structure is also designed to support integrity constraints such as ownership, timestamps and denormalized data."
+  }
+}
