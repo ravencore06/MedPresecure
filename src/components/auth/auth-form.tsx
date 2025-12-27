@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -9,17 +9,11 @@ import {
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
 } from "firebase/auth";
+import Image from 'next/image';
 
 import { auth } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -29,9 +23,10 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Eye, EyeOff, Loader2, Lock, ShieldCheck } from "lucide-react";
+import { Eye, EyeOff, Loader2, Lock, Shield, ArrowRight } from "lucide-react";
+import { Branding } from "./branding";
 
-const toDummyEmail = (aadhaar: string) => `${aadhaar}@medpresecure.local`;
+const toDummyEmail = (aadhaar: string) => `${aadhaar}@medpreserve.com`;
 
 const aadhaarRegex = new RegExp(/^\d{12}$/);
 const aadhaarError = "Aadhaar number must be 12 digits.";
@@ -119,31 +114,35 @@ function AuthFormCore({ formType, setFormType }: { formType: FormType; setFormTy
     }
   };
 
-  const getTitle = () => {
-    switch (formType) {
-      case "signup": return "Create an Account";
-      case "forgotPassword": return "Reset Your Password";
-      default: return "Welcome Back";
+  const renderFormFields = () => {
+    if (formType === 'forgotPassword') {
+      return (
+         <FormField
+            control={form.control}
+            name="aadhaar"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Aadhaar Number</FormLabel>
+                <FormControl>
+                  <div className="relative">
+                    <Shield className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                    <Input
+                      placeholder="1234 5678 9012"
+                      {...field}
+                      className="pl-10 bg-white/50"
+                      maxLength={12}
+                    />
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+      );
     }
-  };
-
-  const getDescription = () => {
-    switch (formType) {
-      case "signup": return "Enter your Aadhaar to create a secure account.";
-      case "forgotPassword": return "Enter your Aadhaar to receive a password reset link.";
-      default: return "Log in to your MedPresecure account.";
-    }
-  };
-
-  return (
-    <Card className="w-full max-w-md shadow-2xl">
-      <CardHeader className="text-center">
-        <CardTitle className="text-3xl font-bold">{getTitle()}</CardTitle>
-        <CardDescription>{getDescription()}</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+    
+    return (
+        <>
             <FormField
               control={form.control}
               name="aadhaar"
@@ -152,9 +151,9 @@ function AuthFormCore({ formType, setFormType }: { formType: FormType; setFormTy
                   <FormLabel>Aadhaar Number</FormLabel>
                   <FormControl>
                     <div className="relative">
-                      <ShieldCheck className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                      <Shield className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500" />
                       <Input
-                        placeholder="1234 5678 9012"
+                        placeholder="12-Digit Aadhaar Number"
                         {...field}
                         className="pl-10"
                         maxLength={12}
@@ -165,42 +164,52 @@ function AuthFormCore({ formType, setFormType }: { formType: FormType; setFormTy
                 </FormItem>
               )}
             />
-            {formType !== "forgotPassword" && (
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                   <div className="flex justify-between items-center">
                     <FormLabel>Password</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                        <Input
-                          type={showPassword ? "text" : "password"}
-                          placeholder="••••••••"
-                          {...field}
-                          className="pr-10 pl-10"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute inset-y-0 right-0 flex items-center pr-3"
-                          aria-label={showPassword ? "Hide password" : "Show password"}
-                        >
-                          {showPassword ? (
-                            <EyeOff className="h-5 w-5 text-muted-foreground" />
-                          ) : (
-                            <Eye className="h-5 w-5 text-muted-foreground" />
-                          )}
-                        </button>
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
-            {formType === "signup" && (
+                    {formType === 'login' && (
+                       <Button
+                        type="button"
+                        variant="link"
+                        className="p-0 h-auto text-sm text-blue-600 hover:text-blue-700"
+                        onClick={() => setFormType("forgotPassword")}
+                      >
+                        Forgot password?
+                      </Button>
+                    )}
+                  </div>
+                  <FormControl>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500" />
+                      <Input
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Enter your password"
+                        {...field}
+                        className="pr-10 pl-10"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute inset-y-0 right-0 flex items-center pr-3"
+                        aria-label={showPassword ? "Hide password" : "Show password"}
+                      >
+                        {showPassword ? (
+                          <EyeOff className="h-5 w-5 text-gray-500" />
+                        ) : (
+                          <Eye className="h-5 w-5 text-gray-500" />
+                        )}
+                      </button>
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+             {formType === "signup" && (
               <FormField
                 control={form.control}
                 name="confirmPassword"
@@ -209,10 +218,10 @@ function AuthFormCore({ formType, setFormType }: { formType: FormType; setFormTy
                     <FormLabel>Confirm Password</FormLabel>
                     <FormControl>
                       <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500" />
                         <Input
                           type={showConfirmPassword ? "text" : "password"}
-                          placeholder="••••••••"
+                          placeholder="Confirm your password"
                           {...field}
                           className="pr-10 pl-10"
                         />
@@ -223,9 +232,9 @@ function AuthFormCore({ formType, setFormType }: { formType: FormType; setFormTy
                           aria-label={showConfirmPassword ? "Hide password" : "Show password"}
                         >
                           {showConfirmPassword ? (
-                            <EyeOff className="h-5 w-5 text-muted-foreground" />
+                            <EyeOff className="h-5 w-5 text-gray-500" />
                           ) : (
-                            <Eye className="h-5 w-5 text-muted-foreground" />
+                            <Eye className="h-5 w-5 text-gray-500" />
                           )}
                         </button>
                       </div>
@@ -235,55 +244,69 @@ function AuthFormCore({ formType, setFormType }: { formType: FormType; setFormTy
                 )}
               />
             )}
+        </>
+    )
+  }
 
-            {formType === "login" && (
-              <div className="flex justify-end">
+  const getButtonText = () => {
+    switch (formType) {
+      case "login": return "Login to Account";
+      case "signup": return "Create Account";
+      case "forgotPassword": return "Send Reset Link";
+    }
+  }
+
+  const renderFooter = () => {
+     if (formType === 'forgotPassword') {
+        return (
+             <div className="mt-6 text-center text-sm text-gray-600">
+                Remembered your password?{" "}
                 <Button
-                  type="button"
-                  variant="link"
-                  className="p-0 h-auto text-sm text-accent hover:text-accent/80"
-                  onClick={() => setFormType("forgotPassword")}
+                    variant="link"
+                    className="p-0 h-auto font-semibold text-blue-600"
+                    onClick={() => setFormType("login")}
                 >
-                  Forgot password?
+                    Login
                 </Button>
-              </div>
-            )}
-
-            <Button type="submit" className="w-full font-semibold" disabled={loading}>
-              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {formType === "login" && "Log In"}
-              {formType === "signup" && "Sign Up"}
-              {formType === "forgotPassword" && "Send Reset Link"}
+            </div>
+        )
+     }
+     
+     return (
+        <div className="mt-6 text-center text-sm text-gray-600">
+            {formType === 'login' ? "Don't have an account?" : "Already have an account?"}{" "}
+            <Button
+                variant="link"
+                className="p-0 h-auto font-semibold text-blue-600"
+                onClick={() => setFormType(formType === 'login' ? "signup" : "login")}
+            >
+                {formType === 'login' ? "Sign up" : "Login"}
             </Button>
-          </form>
-        </Form>
-        <div className="mt-6 text-center text-sm">
-          {formType === "login" ? (
-            <>
-              Don't have an account?{" "}
-              <Button
-                variant="link"
-                className="p-0 h-auto font-semibold text-primary"
-                onClick={() => setFormType("signup")}
-              >
-                Sign up
-              </Button>
-            </>
-          ) : (
-            <>
-              Already have an account?{" "}
-              <Button
-                variant="link"
-                className="p-0 h-auto font-semibold text-primary"
-                onClick={() => setFormType("login")}
-              >
-                Log in
-              </Button>
-            </>
-          )}
         </div>
-      </CardContent>
-    </Card>
+     );
+  }
+
+
+  return (
+    <div className="w-full max-w-lg p-8 space-y-6 bg-white/80 backdrop-blur-md rounded-2xl shadow-2xl">
+      <Branding />
+
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <div className="space-y-4">
+            {renderFormFields()}
+          </div>
+          
+          <Button type="submit" className="w-full font-semibold bg-blue-600 hover:bg-blue-700 text-white" disabled={loading}>
+            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {getButtonText()}
+            {formType === 'login' && <ArrowRight className="ml-2 h-4 w-4" />}
+          </Button>
+        </form>
+      </Form>
+      
+      {renderFooter()}
+    </div>
   );
 }
 

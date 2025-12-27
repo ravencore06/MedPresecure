@@ -1,10 +1,10 @@
 {
   "placeholderImages": [
     {
-      "id": "branding-image",
-      "description": "Abstract security-themed graphic for MedPresecure branding panel",
-      "imageUrl": "https://images.unsplash.com/photo-1750020113744-d831cc1d7ee8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxzZWN1cml0eSUyMGFic3RyYWN0fGVufDB8fHx8MTc2NjgwNDkxOHww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "security abstract"
+      "id": "login-background",
+      "description": "Doctor and patient meeting in a modern clinic.",
+      "imageUrl": "https://images.unsplash.com/photo-1576091160550-2173dba999ef?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxkb2N0b3IlMjBwYXRpZW50fGVufDB8fHx8MTc2NjgzNTY5NHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "doctor patient"
     }
   ]
 }
