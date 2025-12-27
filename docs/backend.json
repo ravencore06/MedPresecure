@@ -123,6 +123,15 @@
           "type": "string",
           "description": "Type of appointment (e.g., Video Consultation, In-person)."
         },
+        "status": {
+          "type": "string",
+          "description": "The current status of the appointment.",
+          "enum": [
+            "pending",
+            "confirmed",
+            "cancelled"
+          ]
+        },
         "notes": {
           "type": "string",
           "description": "Notes about the appointment."
@@ -133,7 +142,8 @@
         "patientId",
         "doctorId",
         "appointmentDateTime",
-        "type"
+        "type",
+        "status"
       ]
     },
     "Doctor": {
@@ -391,3 +401,4 @@
     "reasoning": "The Firestore structure is designed to facilitate a secure and scalable Patient Health Dashboard application. It prioritizes authorization independence by using path-based ownership for patient-specific data (prescriptions, appointments, uploads) and avoids hierarchical authorization dependencies. This structure makes security rules simpler and more robust, enabling atomic operations (transactions/batches) and easier debugging. The use of path-based ownership (e.g., `/users/{userId}/prescriptions/{prescriptionId}`) ensures that only the authenticated patient can access their own data, enforcing a strong QAP. The structure is also designed to support integrity constraints such as ownership, timestamps and denormalized data."
   }
 }
+    
