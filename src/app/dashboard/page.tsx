@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -29,10 +28,9 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { useUser } from '@/firebase';
+import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import {
   Bell,
-  ChevronDown,
   Download,
   FileText,
   HeartPulse,
@@ -63,6 +61,9 @@ import {
   SidebarGroupLabel,
 } from '@/components/ui/sidebar';
 import { Shield } from 'lucide-react';
+import React, { useState } from 'react';
+import { AddPrescriptionModal } from '@/components/dashboard/add-prescription-modal';
+import { collection } from 'firebase/firestore';
 
 const appointments = [
   {
@@ -83,32 +84,6 @@ const appointments = [
   },
 ];
 
-const medications = [
-  {
-    name: 'Metformin',
-    dosage: '500mg',
-    frequency: 'Twice a day',
-    status: 'Active',
-  },
-  {
-    name: 'Amlodipine',
-    dosage: '10mg',
-    frequency: 'Once a day',
-    status: 'Active',
-  },
-  {
-    name: 'Atorvastatin',
-    dosage: '20mg',
-    frequency: 'Once a day',
-    status: 'Active',
-  },
-  {
-    name: 'Lisinopril',
-    dosage: '10mg',
-    frequency: 'Once a day',
-    status: 'Active',
-  },
-];
 
 const uploads = [
   { name: 'Blood Test Results.pdf', date: '2024-07-15', icon: <FileText /> },
@@ -118,6 +93,16 @@ const uploads = [
 export default function DashboardPage() {
   const { user, isUserLoading } = useUser();
   const router = useRouter();
+  const firestore = useFirestore();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const prescriptionsQuery = useMemoFirebase(() => {
+    if (!user) return null;
+    return collection(firestore, 'patients', user.uid, 'prescriptions');
+  }, [firestore, user]);
+
+  const { data: medications, isLoading: medicationsLoading } = useCollection(prescriptionsQuery);
+
 
   if (isUserLoading) {
     return <div>Loading...</div>;
@@ -130,6 +115,7 @@ export default function DashboardPage() {
 
   return (
     <SidebarProvider>
+      <AddPrescriptionModal isOpen={isModalOpen} onOpenChange={setIsModalOpen} />
       <Sidebar>
         <SidebarHeader>
           <div className="flex items-center gap-2">
@@ -166,7 +152,7 @@ export default function DashboardPage() {
             <div className="flex-1">
               <p className="text-sm font-semibold">Sarah Noor</p>
               <p className="text-xs text-muted-foreground">
-                Patient ID: 12345
+                Patient ID: {user.uid.slice(0, 7)}
               </p>
             </div>
             <Settings className="w-5 h-5" />
@@ -198,7 +184,7 @@ export default function DashboardPage() {
           <main className="flex-1 p-6">
             <div className="flex items-center justify-between mb-6">
               <h1 className="text-2xl font-bold">Good Morning, Sarah</h1>
-              <Button className="bg-blue-600 hover:bg-blue-700">
+              <Button className="bg-blue-600 hover:bg-blue-700" onClick={() => setIsModalOpen(true)}>
                 <Plus className="w-5 h-5 mr-2" /> Add New Prescription
               </Button>
             </div>
@@ -212,7 +198,7 @@ export default function DashboardPage() {
                   <Pill className="w-5 h-5 text-blue-500" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">12</div>
+                  <div className="text-2xl font-bold">{medications?.length || 0}</div>
                 </CardContent>
               </Card>
               <Card>
@@ -223,7 +209,7 @@ export default function DashboardPage() {
                   <HeartPulse className="w-5 h-5 text-green-500" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">4</div>
+                  <div className="text-2xl font-bold">{medications?.filter(m => m.status === 'Active').length || 0}</div>
                 </CardContent>
               </Card>
               <Card>
@@ -257,14 +243,21 @@ export default function DashboardPage() {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {medications.map((med, index) => (
+                        {medicationsLoading && (
+                          <TableRow>
+                            <TableCell colSpan={5} className="text-center">
+                              Loading medications...
+                            </TableCell>
+                          </TableRow>
+                        )}
+                        {!medicationsLoading && medications && medications.map((med, index) => (
                           <TableRow key={index}>
-                            <TableCell>{med.name}</TableCell>
+                            <TableCell>{med.medicineName}</TableCell>
                             <TableCell>{med.dosage}</TableCell>
                             <TableCell>{med.frequency}</TableCell>
                             <TableCell>
-                              <Badge className="bg-green-100 text-green-800">
-                                {med.status}
+                              <Badge className={`${med.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                {med.status || 'Active'}
                               </Badge>
                             </TableCell>
                             <TableCell className="text-right">
@@ -356,5 +349,3 @@ export default function DashboardPage() {
     </SidebarProvider>
   );
 }
-
-    
