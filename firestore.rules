@@ -172,5 +172,15 @@ service cloud.firestore {
       allow update: if false; // TODO: Add admin/role validation once an ownership or permissions model is defined.
       allow delete: if false; // TODO: Add admin/role validation once an ownership or permissions model is defined.
     }
+    
+    /**
+     * @description Secures user-specific settings.
+     * @path /userSettings/{userId}
+     * @allow (read, write) The user modifying their own settings.
+     * @principle Enforces document ownership for user preferences.
+     */
+    match /userSettings/{userId} {
+      allow read, write: if isOwner(userId);
+    }
   }
 }
