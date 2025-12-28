@@ -81,6 +81,8 @@ import {
 } from '@/components/ui/sidebar';
 import { useRouter } from 'next/navigation';
 import { subDays, startOfDay, endOfDay } from 'date-fns';
+import { doctors } from '@/lib/doctors';
+
 
 type Status = 'Confirmed' | 'Pending' | 'Cancelled';
 
@@ -89,11 +91,6 @@ const statusColors: Record<Status, string> = {
   Pending: 'bg-yellow-100 text-yellow-800',
   Cancelled: 'bg-red-100 text-red-800',
 };
-
-const doctors = [
-  { id: '1', name: 'Dr. John Doe', specialty: 'Cardiology', avatar: 'https://i.pravatar.cc/150?img=1' },
-  { id: '2', name: 'Dr. Jane Smith', specialty: 'Dermatology', avatar: 'https://i.pravatar.cc/150?img=2' },
-];
 
 export default function AppointmentsPage() {
   const { user, isUserLoading } = useUser();
@@ -224,7 +221,7 @@ export default function AppointmentsPage() {
                   className="w-64 pl-10"
                 />
               </div>
-              <Button>
+              <Button onClick={() => router.push('/dashboard/book-appointment')}>
                 <Plus className="mr-2 h-4 w-4" /> Book Appointment
               </Button>
             </div>
