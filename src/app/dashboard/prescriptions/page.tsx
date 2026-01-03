@@ -65,6 +65,12 @@ import {
   X,
   FileSearch,
   LogOut,
+  Bot,
+  AlertTriangle,
+  Info,
+  ListChecks,
+  Siren,
+  Loader2,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -81,6 +87,8 @@ import {
 } from '@/components/ui/sidebar';
 import { AddPrescriptionModal } from '@/components/dashboard/add-prescription-modal';
 import { useRouter } from 'next/navigation';
+import { analyzePrescription, PrescriptionInsightsOutput } from '@/ai/flows/prescription-insights-flow';
+import { Skeleton } from '@/components/ui/skeleton';
 
 type Status = 'Active' | 'Completed' | 'Emergency';
 
@@ -88,6 +96,16 @@ const statusColors: Record<Status, string> = {
   Active: 'bg-green-100 text-green-800',
   Completed: 'bg-blue-100 text-blue-800',
   Emergency: 'bg-red-100 text-red-800',
+};
+
+type Prescription = {
+    id: string;
+    medicineName: string;
+    dosage: string;
+    frequency: string;
+    status: Status;
+    notes?: string;
+    createdAt: Timestamp;
 };
 
 export default function PrescriptionsPage() {
@@ -99,6 +117,10 @@ export default function PrescriptionsPage() {
   const [statusFilter, setStatusFilter] = useState<Status | 'all'>('all');
   const [dateRange, setDateRange] = useState('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedPrescription, setSelectedPrescription] = useState<Prescription | null>(null);
+  const [insights, setInsights] = useState<PrescriptionInsightsOutput | null>(null);
+  const [isLoadingInsights, setIsLoadingInsights] = useState(false);
+
 
   const prescriptionsQuery = useMemoFirebase(() => {
     if (!user) return null;
@@ -128,7 +150,7 @@ export default function PrescriptionsPage() {
     return q;
   }, [firestore, user, statusFilter, dateRange]);
 
-  const { data: allPrescriptions, isLoading } = useCollection(
+  const { data: allPrescriptions, isLoading } = useCollection<Prescription>(
     prescriptionsQuery
   );
 
@@ -138,6 +160,35 @@ export default function PrescriptionsPage() {
       p.medicineName.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [allPrescriptions, searchTerm]);
+  
+  const handleViewDetails = async (prescription: Prescription) => {
+    setSelectedPrescription(prescription);
+    setIsLoadingInsights(true);
+    setInsights(null); // Clear previous insights
+    try {
+      const pastPrescriptions = allPrescriptions
+        ?.filter(p => p.id !== prescription.id && p.createdAt.toDate() < prescription.createdAt.toDate())
+        .map(p => ({
+            medicineName: p.medicineName,
+            dosage: p.dosage,
+            startDate: p.createdAt.toDate().toISOString(),
+        })) || [];
+        
+      const result = await analyzePrescription({
+        medicineName: prescription.medicineName,
+        dosage: prescription.dosage,
+        frequency: prescription.frequency,
+        notes: prescription.notes,
+        pastPrescriptions,
+      });
+      setInsights(result);
+    } catch (error) {
+      console.error("Error fetching AI insights:", error);
+      // You could set an error state here to show in the UI
+    } finally {
+      setIsLoadingInsights(false);
+    }
+  };
 
   const resetFilters = () => {
     setSearchTerm('');
@@ -340,7 +391,7 @@ export default function PrescriptionsPage() {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent>
-                                <DropdownMenuItem>View Details</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleViewDetails(p)}>View Details</DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </TableCell>
@@ -368,6 +419,78 @@ export default function PrescriptionsPage() {
             </Card>
           </main>
         </div>
+
+        <Sheet open={!!selectedPrescription} onOpenChange={(open) => !open && setSelectedPrescription(null)}>
+          <SheetContent className="sm:max-w-lg overflow-y-auto">
+            <SheetHeader>
+              <SheetTitle className="flex items-center gap-2">
+                <Bot /> AI-Powered Insights
+              </SheetTitle>
+              <SheetDescription>
+                This AI analysis is for informational purposes only and is not a substitute for professional medical advice.
+              </SheetDescription>
+            </SheetHeader>
+            <div className="py-6 space-y-6">
+            {isLoadingInsights ? (
+              <div className="space-y-6">
+                <Skeleton className="h-8 w-1/2" />
+                <Skeleton className="h-16 w-full" />
+                <Skeleton className="h-8 w-1/3" />
+                <Skeleton className="h-12 w-full" />
+                 <Skeleton className="h-8 w-1/3" />
+                <Skeleton className="h-12 w-full" />
+              </div>
+            ) : insights ? (
+              <>
+                <div>
+                  <h3 className="font-semibold text-lg mb-2">Medication Details</h3>
+                  <div className="grid grid-cols-3 gap-2 text-sm p-3 bg-slate-50 rounded-md">
+                      <div><span className="font-medium text-gray-500 block">Medicine</span>{selectedPrescription?.medicineName}</div>
+                      <div><span className="font-medium text-gray-500 block">Dosage</span>{selectedPrescription?.dosage}</div>
+                      <div><span className="font-medium text-gray-500 block">Frequency</span>{selectedPrescription?.frequency}</div>
+                  </div>
+                </div>
+
+                {insights.alerts && insights.alerts.length > 0 && (
+                  <div className="p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded-r-lg">
+                    <h3 className="font-semibold flex items-center gap-2 text-yellow-800"><Siren size={18} /> AI-Detected Alerts</h3>
+                    <ul className="mt-2 list-disc list-inside space-y-1 text-sm text-yellow-700">
+                      {insights.alerts.map((alert, i) => <li key={i}>({alert.level}) {alert.message}</li>)}
+                    </ul>
+                  </div>
+                )}
+                
+                <div className="space-y-4">
+                   <div>
+                    <h3 className="font-semibold flex items-center gap-2 mb-2"><Info size={18} /> Medicine Purpose</h3>
+                    <p className="text-sm text-gray-600">{insights.medicinePurpose}</p>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold flex items-center gap-2 mb-2"><ListChecks size={18} /> Intake Schedule</h3>
+                    <p className="text-sm text-gray-600">{insights.intakeSchedule}</p>
+                  </div>
+                   <div>
+                    <h3 className="font-semibold flex items-center gap-2 mb-2"><AlertTriangle size={18} /> Common Side Effects</h3>
+                    <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
+                      {insights.commonSideEffects.map((effect, i) => <li key={i}>{effect}</li>)}
+                    </ul>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold flex items-center gap-2 mb-2"><Bell size={18} /> Follow-up Suggestions</h3>
+                    <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
+                      {insights.followUpSuggestions.map((suggestion, i) => <li key={i}>{suggestion}</li>)}
+                    </ul>
+                  </div>
+                </div>
+              </>
+            ) : (
+               <div className="text-center py-10">
+                  <p className="text-gray-500">No insights available for this prescription.</p>
+                </div>
+            )}
+            </div>
+          </SheetContent>
+        </Sheet>
       </SidebarInset>
     </SidebarProvider>
   );
