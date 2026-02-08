@@ -1,0 +1,411 @@
+{
+  "entities": {
+    "Patient": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Patient",
+      "type": "object",
+      "description": "Represents a patient using the application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Patient entity."
+        },
+        "aadhaarNumber": {
+          "type": "string",
+          "description": "Patient's Aadhaar number (used as primary identifier)."
+        },
+        "name": {
+          "type": "string",
+          "description": "Patient's full name."
+        },
+        "dateOfBirth": {
+          "type": "string",
+          "description": "Patient's date of birth.",
+          "format": "date"
+        },
+        "gender": {
+          "type": "string",
+          "description": "Patient's gender."
+        },
+        "contactNumber": {
+          "type": "string",
+          "description": "Patient's contact phone number."
+        },
+        "address": {
+          "type": "string",
+          "description": "Patient's address."
+        },
+        "bloodGroup": {
+          "type": "string",
+          "description": "Patient's blood group."
+        }
+      },
+      "required": [
+        "id",
+        "aadhaarNumber",
+        "name"
+      ]
+    },
+    "Prescription": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Prescription",
+      "type": "object",
+      "description": "Represents a medical prescription.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Prescription entity."
+        },
+        "patientId": {
+          "type": "string",
+          "description": "Reference to Patient. (Relationship: Patient 1:N Prescription)"
+        },
+        "doctorId": {
+          "type": "string",
+          "description": "Reference to Doctor. (Relationship: Doctor 1:N Prescription)"
+        },
+        "medicineName": {
+          "type": "string",
+          "description": "Name of the prescribed medicine."
+        },
+        "dosage": {
+          "type": "string",
+          "description": "Dosage of the medicine."
+        },
+        "frequency": {
+          "type": "string",
+          "description": "Frequency of medicine intake (e.g., twice daily)."
+        },
+        "startDate": {
+          "type": "string",
+          "description": "Start date of the prescription.",
+          "format": "date-time"
+        },
+        "endDate": {
+          "type": "string",
+          "description": "End date of the prescription.",
+          "format": "date-time"
+        },
+        "notes": {
+          "type": "string",
+          "description": "Additional notes about the prescription."
+        },
+        "status": {
+            "type": "string",
+            "description": "The current status of the prescription.",
+            "enum": ["Active", "Completed", "Emergency"]
+        }
+      },
+      "required": [
+        "id",
+        "patientId",
+        "medicineName",
+        "dosage",
+        "frequency",
+        "startDate"
+      ]
+    },
+    "Appointment": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Appointment",
+      "type": "object",
+      "description": "Represents a medical appointment.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Appointment entity."
+        },
+        "patientId": {
+          "type": "string",
+          "description": "Reference to Patient. (Relationship: Patient 1:N Appointment)"
+        },
+        "doctorId": {
+          "type": "string",
+          "description": "Reference to Doctor. (Relationship: Doctor 1:N Appointment)"
+        },
+        "appointmentDateTime": {
+          "type": "string",
+          "description": "Date and time of the appointment.",
+          "format": "date-time"
+        },
+        "type": {
+          "type": "string",
+          "description": "Type of appointment (e.g., Video Consultation, In-person)."
+        },
+        "status": {
+          "type": "string",
+          "description": "The current status of the appointment.",
+          "enum": [
+            "Pending",
+            "Confirmed",
+            "Cancelled",
+            "Completed"
+          ]
+        },
+        "notes": {
+          "type": "string",
+          "description": "Notes about the appointment."
+        }
+      },
+      "required": [
+        "id",
+        "patientId",
+        "doctorId",
+        "appointmentDateTime",
+        "type",
+        "status"
+      ]
+    },
+    "Doctor": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Doctor",
+      "type": "object",
+      "description": "Represents a doctor in the system.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Doctor entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "Doctor's full name."
+        },
+        "specialty": {
+          "type": "string",
+          "description": "Doctor's area of specialization."
+        },
+        "contactNumber": {
+          "type": "string",
+          "description": "Doctor's contact phone number."
+        },
+        "email": {
+          "type": "string",
+          "description": "Doctor's email address.",
+          "format": "email"
+        },
+        "gender": {
+          "type": "string",
+          "description": "Doctor's gender.",
+          "enum": ["Male", "Female", "Other"]
+        },
+        "experience": {
+          "type": "number",
+          "description": "Doctor's years of experience."
+        },
+        "rating": {
+          "type": "number",
+          "description": "Doctor's average rating."
+        },
+        "location": {
+          "type": "string",
+          "description": "Doctor's primary clinic location."
+        },
+        "isAvailableToday": {
+          "type": "boolean",
+          "description": "Indicates if the doctor is available today."
+        },
+        "acceptingNewPatients": {
+          "type": "boolean",
+          "description": "Indicates if the doctor is accepting new patients."
+        },
+        "avatar": {
+          "type": "string",
+          "description": "URL to the doctor's avatar image.",
+          "format": "uri"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "specialty"
+      ]
+    },
+    "Upload": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Upload",
+      "type": "object",
+      "description": "Represents a file uploaded by a patient.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Upload entity."
+        },
+        "patientId": {
+          "type": "string",
+          "description": "Reference to Patient. (Relationship: Patient 1:N Upload)"
+        },
+        "fileName": {
+          "type": "string",
+          "description": "Name of the uploaded file."
+        },
+        "fileType": {
+          "type": "string",
+          "description": "Type of the uploaded file (e.g., PDF, JPG)."
+        },
+        "uploadDateTime": {
+          "type": "string",
+          "description": "Date and time of the upload.",
+          "format": "date-time"
+        },
+        "fileUrl": {
+          "type": "string",
+          "description": "URL of the uploaded file in Firebase Storage.",
+          "format": "uri"
+        }
+      },
+      "required": [
+        "id",
+        "patientId",
+        "fileName",
+        "fileType",
+        "uploadDateTime",
+        "fileUrl"
+      ]
+    },
+    "Notification": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Notification",
+      "type": "object",
+      "description": "Represents a notification or reminder for a patient.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Notification entity."
+        },
+        "patientId": {
+          "type": "string",
+          "description": "The UID of the authenticated user (patient)."
+        },
+        "type": {
+          "type": "string",
+          "description": "Type of notification (e.g., 'Medication', 'Appointment').",
+          "enum": [
+            "Medication",
+            "Appointment"
+          ]
+        },
+        "title": {
+          "type": "string",
+          "description": "The main title of the notification (e.g., medicine name)."
+        },
+        "reminderTime": {
+          "type": "string",
+          "description": "The scheduled time for the reminder.",
+          "format": "date-time"
+        },
+        "status": {
+          "type": "string",
+          "description": "Status of the notification (e.g., 'Pending', 'Completed', 'Snoozed').",
+          "enum": [
+            "Pending",
+            "Completed",
+            "Snoozed"
+          ]
+        },
+        "relatedId": {
+          "type": "string",
+          "description": "ID of the related entity (e.g., prescription or appointment ID)."
+        }
+      },
+      "required": [
+        "id",
+        "patientId",
+        "type",
+        "title",
+        "reminderTime",
+        "status"
+      ]
+    },
+    "UserSettings": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User Settings",
+      "type": "object",
+      "description": "Stores user-specific settings and preferences.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier, matches the user's UID."
+        },
+        "notificationPreferences": {
+          "type": "object",
+          "properties": {
+            "medicationReminders": { "type": "boolean", "default": true },
+            "appointmentAlerts": { "type": "boolean", "default": true },
+            "labResults": { "type": "boolean", "default": false }
+          }
+        },
+        "privacySettings": {
+          "type": "object",
+          "properties": {
+            "shareDataWithDoctors": { "type": "boolean", "default": true }
+          }
+        }
+      },
+      "required": ["id"]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "collections": [
+      {
+        "path": "/patients/{patientId}",
+        "schema": {
+          "$ref": "#/entities/Patient"
+        },
+        "description": "Stores patient information. The patientId is the user's UID from Firebase Auth."
+      },
+      {
+        "path": "/patients/{patientId}/prescriptions/{prescriptionId}",
+        "schema": {
+          "$ref": "#/entities/Prescription"
+        },
+        "description": "Stores prescriptions for a specific patient. Uses path-based ownership for security."
+      },
+      {
+        "path": "/patients/{patientId}/appointments/{appointmentId}",
+        "schema": {
+          "$ref": "#/entities/Appointment"
+        },
+        "description": "Stores appointments for a specific patient. Uses path-based ownership for security."
+      },
+      {
+        "path": "/patients/{patientId}/uploads/{uploadId}",
+        "schema": {
+          "$ref": "#/entities/Upload"
+        },
+        "description": "Stores file uploads for a specific patient. Uses path-based ownership for security."
+      },
+      {
+        "path": "/patients/{patientId}/notifications/{notificationId}",
+        "schema": {
+          "$ref": "#/entities/Notification"
+        },
+        "description": "Stores notifications for a specific patient. Uses path-based ownership for security."
+      },
+      {
+        "path": "/doctors/{doctorId}",
+        "schema": {
+          "$ref": "#/entities/Doctor"
+        },
+        "description": "Stores information about doctors in the system."
+      },
+      {
+        "path": "/appointments/{appointmentId}",
+        "schema": {
+          "$ref": "#/entities/Appointment"
+        },
+        "description": "Top-level collection for all appointments, used for booking and availability checks."
+      },
+       {
+        "path": "/userSettings/{userId}",
+        "schema": { "$ref": "#/entities/UserSettings" },
+        "description": "Stores user-specific settings. The document ID is the user's UID."
+      }
+    ]
+  }
+}

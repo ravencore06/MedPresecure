@@ -1,0 +1,10 @@
+{
+  "placeholderImages": [
+    {
+      "id": "login-background",
+      "description": "Doctor and patient meeting in a modern clinic.",
+      "imageUrl": "https://images.unsplash.com/photo-1576091160550-2173dba999ef?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxkb2N0b3IlMjBwYXRpZW50fGVufDB8fHx8MTc2NjgzNTY5NHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "doctor patient"
+    }
+  ]
+}

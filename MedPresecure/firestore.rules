@@ -1,0 +1,203 @@
+/**
+ * This ruleset enforces a strict patient-ownership security model for a health dashboard application.
+ *
+ * Core Philosophy:
+ * The fundamental principle is that users (patients) have exclusive control over their own data.
+ * All sensitive health information, such as prescriptions, appointments, and uploads, is
+ * accessible only by the authenticated patient to whom it belongs.
+ *
+ * Data Structure:
+ * All patient-specific data is hierarchically organized under the `/patients/{patientId}` path, where
+ * `patientId` corresponds to the user's Firebase Authentication UID. This structure inherently
+ * isolates each patient's data, simplifying security logic. The `/doctors` collection is a top-level,
+ * read-only collection containing public information.
+ *
+ * Key Security Decisions:
+ * - User Enumeration Disabled: Listing the top-level `/patients` collection is explicitly forbidden to
+ *   protect patient privacy and prevent discovery of the user base.
+ * - Patient Data Isolation: All rules for subcollections under `/patients/{patientId}` verify that the
+ *   requester's UID matches the `patientId` in the path.
+ * - Read-Only Public Data: The `/doctors` collection is publicly readable by anyone but cannot be
+ *   modified through client applications, ensuring data integrity. A more complex role-based system
+ *   would be required to allow administrative writes.
+ * - Relational Integrity: On creation, documents within a patient's data tree (e.g., a prescription)
+ *   must contain a `patientId` field that matches the `patientId` from the path, ensuring data consistency.
+ *   This link is immutable and cannot be changed on update.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ------------------------------------------------------------------------
+    // Helper Functions
+    // ------------------------------------------------------------------------
+
+    /**
+     * Checks if the user is authenticated.
+     */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /**
+     * Checks if the authenticated user's UID matches the provided userId.
+     * This is the core of the ownership-based security model.
+     * @param userId The user ID to check against the authenticated user.
+     */
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    /**
+     * Checks for ownership on an existing document.
+     * CRITICAL: Used for all update and delete operations to prevent modifying
+     * or deleting documents that do not exist.
+     * @param userId The user ID to verify ownership.
+     */
+    function isExistingOwner(userId) {
+      return isOwner(userId) && resource != null;
+    }
+
+    /**
+     * VALIDATION: On create, ensures the new patient document's `id` field
+     * matches the UID in the path.
+     */
+    function hasValidPatientId(patientId) {
+      return request.resource.data.id == patientId;
+    }
+
+    /**
+     * VALIDATION: On update, ensures the patient document's `id` field is immutable.
+     */
+    function isPatientIdImmutable() {
+      return request.resource.data.id == resource.data.id;
+    }
+
+    /**
+     * VALIDATION: On create, ensures a subcollection document contains a `patientId`
+     * field that correctly links it back to its parent patient document.
+     */
+    function hasValidPatientLink(patientId) {
+      return request.resource.data.patientId == patientId;
+    }
+
+    /**
+     * VALIDATION: On update, ensures the `patientId` field within a subcollection
+     * document is immutable, preventing it from being reassigned to another patient.
+     */
+    function isPatientLinkImmutable() {
+      return request.resource.data.patientId == resource.data.patientId;
+    }
+
+    // ------------------------------------------------------------------------
+    // Collection Rules
+    // ------------------------------------------------------------------------
+
+    /**
+     * @description Manages patient profile documents. Each patient can create their own profile and
+     *              subsequently manage it. Listing all patients is denied.
+     * @path /patients/{patientId}
+     * @allow (create) An authenticated user creating their own patient document with a matching ID.
+     * @deny (list) Any user attempting to list all patients in the system.
+     * @principle Restricts access to a user's own data tree and prevents user enumeration.
+     */
+    match /patients/{patientId} {
+      allow get: if isOwner(patientId);
+      allow list: if false;
+      allow create: if isOwner(patientId) && hasValidPatientId(patientId);
+      allow update: if isExistingOwner(patientId) && isPatientIdImmutable();
+      allow delete: if isExistingOwner(patientId);
+    }
+
+    /**
+     * @description Secures the prescriptions belonging to a specific patient.
+     * @path /patients/{patientId}/prescriptions/{prescriptionId}
+     * @allow (create) The patient creating a new prescription for themselves.
+     * @deny (get) An authenticated user trying to read another patient's prescription.
+     * @principle Enforces document ownership via path parameter for all operations.
+     */
+    match /patients/{patientId}/prescriptions/{prescriptionId} {
+      allow get: if isOwner(patientId);
+      allow list: if isOwner(patientId);
+      allow create: if isOwner(patientId) && hasValidPatientLink(patientId);
+      allow update: if isExistingOwner(patientId) && isPatientLinkImmutable();
+      allow delete: if isExistingOwner(patientId);
+    }
+
+    /**
+     * @description Secures the appointments belonging to a specific patient.
+     * @path /patients/{patientId}/appointments/{appointmentId}
+     * @allow (list) The patient listing their own upcoming appointments.
+     * @deny (update) Any user attempting to modify another patient's appointment.
+     * @principle Enforces document ownership via path parameter for all operations.
+     */
+    match /patients/{patientId}/appointments/{appointmentId} {
+      allow get: if isOwner(patientId);
+      allow list: if isOwner(patientId);
+      allow create: if isOwner(patientId) && hasValidPatientLink(patientId);
+      allow update: if isExistingOwner(patientId) && isPatientLinkImmutable();
+      allow delete: if isExistingOwner(patientId);
+    }
+
+    /**
+     * @description Secures the file uploads belonging to a specific patient.
+     * @path /patients/{patientId}/uploads/{uploadId}
+     * @allow (delete) The patient deleting one of their own uploaded files.
+     * @deny (create) A user trying to upload a file to another patient's record.
+     * @principle Enforces document ownership via path parameter for all operations.
+     */
+    match /patients/{patientId}/uploads/{uploadId} {
+      allow get: if isOwner(patientId);
+      allow list: if isOwner(patientId);
+      allow create: if isOwner(patientId) && hasValidPatientLink(patientId);
+      allow update: if isExistingOwner(patientId) && isPatientLinkImmutable();
+      allow delete: if isExistingOwner(patientId);
+    }
+    
+    /**
+     * @description Secures notifications for a specific patient.
+     * @path /patients/{patientId}/notifications/{notificationId}
+     * @allow (read, write) The user managing their own notifications.
+     * @principle Enforces document ownership for notifications.
+     */
+    match /patients/{patientId}/notifications/{notificationId} {
+      allow read, write: if isOwner(patientId);
+    }
+
+    /**
+     * @description Manages doctor profiles. This data is considered public and can be read by anyone,
+     *              including unauthenticated users, to populate lists of available doctors. Writes are disabled.
+     * @path /doctors/{doctorId}
+     * @allow (get, list) Any user, authenticated or not, reading doctor profiles.
+     * @deny (create, update, delete) Any client trying to modify the list of doctors.
+     * @principle Provides public read access while preventing client-side modification of shared data.
+     */
+    match /doctors/{doctorId} {
+      allow get, list: if true;
+      allow create, update, delete: if false;
+    }
+    
+    /**
+     * @description Secures appointments in the top-level collection. 
+     *              This collection is used for booking and ensuring doctors' availability.
+     * @path /appointments/{appointmentId}
+     * @allow (read) Any authenticated user can read appointment data, necessary for checking availability.
+     * @allow (create) Any authenticated user can create a new appointment.
+     * @allow (update, delete) Only the patient who booked the appointment can update or delete it.
+     */
+    match /appointments/{appointmentId} {
+        allow read, create: if isSignedIn();
+        allow update, delete: if isOwner(resource.data.patientId);
+    }
+
+    /**
+     * @description Secures user-specific settings.
+     * @path /userSettings/{userId}
+     * @allow (read, write) The user modifying their own settings.
+     * @principle Enforces document ownership for user preferences.
+     */
+    match /userSettings/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+  }
+}
