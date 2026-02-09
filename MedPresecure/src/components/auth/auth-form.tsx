@@ -28,9 +28,11 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Eye, EyeOff, Loader2, Lock, Phone, ArrowRight, User, Calendar, Upload, X } from 'lucide-react';
+import { Eye, EyeOff, Loader2, Lock, Phone, ArrowRight, User, Calendar, Upload, X, UserCircle, Building2 } from 'lucide-react';
 import { Branding } from './branding';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
 
 const toDummyEmail = (mobile: string) => `${mobile}@aarogyam.app`;
 
@@ -44,6 +46,9 @@ const LoginSchema = z.object({
 
 const SignupSchema = z
   .object({
+    userType: z.enum(['patient', 'hospital'], {
+      required_error: 'Please select user type',
+    }),
     name: z.string().min(2, 'Name must be at least 2 characters.'),
     age: z.coerce.number().min(1, 'Age must be at least 1').max(120, 'Age must be less than 120'),
     mobile: z.string().regex(mobileRegex, { message: mobileError }),
@@ -92,7 +97,7 @@ function AuthFormCore({
       formType === 'login'
         ? { mobile: '', password: '' }
         : formType === 'signup'
-          ? { name: '', age: '', mobile: '', password: '', confirmPassword: '' }
+          ? { userType: 'patient' as const, name: '', age: 0, mobile: '', password: '', confirmPassword: '' }
           : { mobile: '' },
   });
 
@@ -142,11 +147,28 @@ function AuthFormCore({
     try {
       if (formType === 'login' && 'password' in data) {
         await signInWithEmailAndPassword(auth, email, data.password);
-        toast({
-          title: 'Login Successful',
-          description: 'Welcome back!',
-        });
-        router.push('/dashboard');
+
+        // Fetch user profile to determine role
+        if (firestore) {
+          const userDocRef = doc(firestore, 'users', auth.currentUser!.uid);
+          const userDocSnap = await import('firebase/firestore').then(({ getDoc }) => getDoc(userDocRef));
+
+          if (userDocSnap.exists()) {
+            const userData = userDocSnap.data();
+            const redirectPath = userData.userType === 'hospital' ? '/hospital-dashboard' : '/dashboard';
+
+            toast({
+              title: 'Login Successful',
+              description: 'Welcome back!',
+            });
+            router.push(redirectPath);
+          } else {
+            // Fallback if no profile found
+            router.push('/dashboard');
+          }
+        } else {
+          router.push('/dashboard');
+        }
       } else if (formType === 'signup' && 'password' in data && 'name' in data && 'age' in data) {
         // Create user with email and password
         const userCredential = await createUserWithEmailAndPassword(auth, email, data.password);
@@ -162,8 +184,9 @@ function AuthFormCore({
         });
 
         // Save user profile to Firestore
-        if (firestore) {
+        if (firestore && 'userType' in data) {
           await setDoc(doc(firestore, 'users', user.uid), {
+            userType: data.userType,
             name: data.name,
             age: data.age,
             mobileNumber: data.mobile,
@@ -233,6 +256,54 @@ function AuthFormCore({
       <>
         {formType === 'signup' && (
           <>
+            {/* User Type Selection */}
+            <FormField
+              control={form.control}
+              name="userType"
+              render={({ field }) => (
+                <FormItem className="space-y-3">
+                  <FormLabel>I am a</FormLabel>
+                  <FormControl>
+                    <RadioGroup
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                      className="grid grid-cols-2 gap-4"
+                    >
+                      <div>
+                        <RadioGroupItem
+                          value="patient"
+                          id="patient"
+                          className="peer sr-only"
+                        />
+                        <Label
+                          htmlFor="patient"
+                          className="flex flex-col items-center justify-center rounded-xl border-2 border-slate-200 bg-white p-4 hover:bg-slate-50 peer-data-[state=checked]:border-blue-600 peer-data-[state=checked]:bg-blue-50 cursor-pointer transition-all"
+                        >
+                          <UserCircle className="mb-2 h-8 w-8 text-blue-600" />
+                          <span className="font-semibold">Patient</span>
+                        </Label>
+                      </div>
+                      <div>
+                        <RadioGroupItem
+                          value="hospital"
+                          id="hospital"
+                          className="peer sr-only"
+                        />
+                        <Label
+                          htmlFor="hospital"
+                          className="flex flex-col items-center justify-center rounded-xl border-2 border-slate-200 bg-white p-4 hover:bg-slate-50 peer-data-[state=checked]:border-teal-600 peer-data-[state=checked]:bg-teal-50 cursor-pointer transition-all"
+                        >
+                          <Building2 className="mb-2 h-8 w-8 text-teal-600" />
+                          <span className="font-semibold">Hospital</span>
+                        </Label>
+                      </div>
+                    </RadioGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <FormField
               control={form.control}
               name="name"
