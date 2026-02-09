@@ -39,49 +39,28 @@ export function Sidebar() {
     return (
         <SidebarContainer className="border-r shadow-sm">
             <SidebarHeader>
-                <div className="flex items-center gap-3 px-4 py-6">
-                    <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500 to-emerald-600 shadow-lg">
+                <div className="flex items-center gap-3 px-6 py-8">
+                    <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-cyan-500 shadow-lg">
                         <Building2 className="w-6 h-6 text-white" />
                     </div>
-                    <span className="text-2xl font-bold bg-gradient-to-r from-teal-600 to-emerald-600 bg-clip-text text-transparent truncate">CareHub</span>
+                    <span className="text-2xl font-black text-slate-900 tracking-tight">MedPreserve</span>
                 </div>
             </SidebarHeader>
 
-            <SidebarContent>
-                <SidebarMenu className="px-3 space-y-1">
+            <SidebarContent className="px-3">
+                <SidebarMenu className="space-y-1.5 pt-4">
                     <SidebarMenuItem>
                         <SidebarMenuButton
-                            onClick={() => handleNavigation('/hospital-dashboard')}
-                            isActive={isActive('/hospital-dashboard')}
-                            tooltip="Overview"
-                            className={`
-                                transition-smooth rounded-lg px-3 py-2.5 
-                                ${isActive('/hospital-dashboard')
-                                    ? 'bg-gradient-to-r from-teal-500 to-emerald-500 text-white shadow-md hover:shadow-lg'
-                                    : 'hover:bg-teal-50 text-slate-700 hover:text-teal-900'
-                                }
-                            `}
+                            onClick={() => handleNavigation('/hospital-dashboard/prescriptions')}
+                            isActive={isActive('/hospital-dashboard/prescriptions')}
+                            tooltip="Prescriptions"
+                            className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-all font-semibold ${isActive('/hospital-dashboard/prescriptions')
+                                    ? 'bg-cyan-50 text-cyan-600 shadow-sm'
+                                    : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+                                }`}
                         >
-                            <LayoutDashboard className="w-5 h-5" />
-                            <span className="font-medium">Overview</span>
-                        </SidebarMenuButton>
-                    </SidebarMenuItem>
-
-                    <SidebarMenuItem>
-                        <SidebarMenuButton
-                            onClick={() => handleNavigation('/hospital-dashboard/doctors')}
-                            isActive={isActive('/hospital-dashboard/doctors')}
-                            tooltip="Doctors Management"
-                            className={`
-                                transition-smooth rounded-lg px-3 py-2.5 
-                                ${isActive('/hospital-dashboard/doctors')
-                                    ? 'bg-gradient-to-r from-teal-500 to-emerald-500 text-white shadow-md hover:shadow-lg'
-                                    : 'hover:bg-teal-50 text-slate-700 hover:text-teal-900'
-                                }
-                            `}
-                        >
-                            <Users className="w-5 h-5" />
-                            <span className="font-medium">Doctors</span>
+                            <FileText className="w-5 h-5" />
+                            <span>Prescriptions</span>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
 
@@ -90,82 +69,69 @@ export function Sidebar() {
                             onClick={() => handleNavigation('/hospital-dashboard/appointments')}
                             isActive={isActive('/hospital-dashboard/appointments')}
                             tooltip="Appointments"
-                            className={`
-                                transition-smooth rounded-lg px-3 py-2.5 
-                                ${isActive('/hospital-dashboard/appointments')
-                                    ? 'bg-gradient-to-r from-teal-500 to-emerald-500 text-white shadow-md hover:shadow-lg'
-                                    : 'hover:bg-teal-50 text-slate-700 hover:text-teal-900'
-                                }
-                            `}
+                            className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-all font-semibold ${isActive('/hospital-dashboard/appointments')
+                                    ? 'bg-cyan-50 text-cyan-600 shadow-sm'
+                                    : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+                                }`}
                         >
                             <Calendar className="w-5 h-5" />
-                            <span className="font-medium">Appointments</span>
+                            <span>Appointments</span>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
 
                     <SidebarMenuItem>
                         <SidebarMenuButton
-                            onClick={() => handleNavigation('/hospital-dashboard/prescriptions')}
-                            isActive={isActive('/hospital-dashboard/prescriptions')}
-                            tooltip="Add Prescription"
-                            className={`
-                                transition-smooth rounded-lg px-3 py-2.5 
-                                ${isActive('/hospital-dashboard/prescriptions')
-                                    ? 'bg-gradient-to-r from-teal-500 to-emerald-500 text-white shadow-md hover:shadow-lg'
-                                    : 'hover:bg-teal-50 text-slate-700 hover:text-teal-900'
-                                }
-                            `}
+                            onClick={() => handleNavigation('/hospital-dashboard/doctors')}
+                            isActive={isActive('/hospital-dashboard/doctors')}
+                            tooltip="Doctors Directory"
+                            className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-all font-semibold ${isActive('/hospital-dashboard/doctors')
+                                    ? 'bg-cyan-50 text-cyan-600 shadow-sm'
+                                    : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+                                }`}
                         >
-                            <UserPlus className="w-5 h-5" />
-                            <span className="font-medium">Prescribe</span>
+                            <Users className="w-5 h-5" />
+                            <span>Doctors</span>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+
+                    <SidebarMenuItem>
+                        <SidebarMenuButton
+                            onClick={() => handleNavigation('/hospital-dashboard/settings')}
+                            isActive={isActive('/hospital-dashboard/settings')}
+                            tooltip="Settings"
+                            className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-all font-semibold ${isActive('/hospital-dashboard/settings')
+                                    ? 'bg-cyan-50 text-cyan-600 shadow-sm'
+                                    : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+                                }`}
+                        >
+                            <Settings className="w-5 h-5" />
+                            <span>Settings</span>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                 </SidebarMenu>
             </SidebarContent>
 
-            <SidebarFooter>
-                <SidebarMenu className="px-3 mb-2">
-                    <SidebarMenuItem>
-                        <SidebarMenuButton
-                            onClick={() => handleNavigation('/hospital-dashboard/settings')}
-                            isActive={isActive('/hospital-dashboard/settings')}
-                            tooltip="Hospital Settings"
-                            className={`
-                                transition-smooth rounded-lg px-3 py-2.5 
-                                ${isActive('/hospital-dashboard/settings')
-                                    ? 'bg-gradient-to-r from-teal-500 to-emerald-500 text-white shadow-md hover:shadow-lg'
-                                    : 'hover:bg-teal-50 text-slate-700 hover:text-teal-900'
-                                }
-                            `}
-                        >
-                            <Settings className="w-5 h-5" />
-                            <span className="font-medium">Settings</span>
-                        </SidebarMenuButton>
-                    </SidebarMenuItem>
-                </SidebarMenu>
-
-                <SidebarSeparator className="my-2" />
-
-                <div className="flex items-center gap-3 p-4 mx-3 mb-4 rounded-xl bg-teal-50 hover:bg-teal-100 transition-smooth">
-                    <Avatar className="border-2 border-white shadow-sm">
-                        <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=Hospital`} alt="Hospital avatar" />
-                        <AvatarFallback className="bg-gradient-to-br from-teal-500 to-emerald-600 text-white">H</AvatarFallback>
+            <SidebarFooter className="p-4 border-t border-slate-100">
+                <div className="flex items-center gap-3 px-2 py-3 hover:bg-slate-50 rounded-xl transition-all cursor-pointer group">
+                    <Avatar className="h-10 w-10 border-2 border-white shadow-sm ring-2 ring-slate-100">
+                        <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=Alex`} />
+                        <AvatarFallback className="bg-cyan-500 text-white font-bold">AM</AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-slate-900 truncate">
-                            Hospital Admin
+                        <p className="text-sm font-bold text-slate-900 truncate group-hover:text-cyan-600 transition-colors">
+                            Dr. Alex Morgan
                         </p>
-                        <p className="text-xs text-teal-600 font-medium truncate">
-                            {user?.email?.split('@')[0]}
+                        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+                            Cardiology Dept.
                         </p>
                     </div>
                     <Button
                         variant="ghost"
                         size="icon"
                         onClick={() => auth?.signOut()}
-                        className="text-slate-500 hover:text-red-600 hover:bg-red-50 transition-smooth"
+                        className="h-8 w-8 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all"
                     >
-                        <LogOut className="w-5 h-5" />
+                        <LogOut className="w-4 h-4" />
                     </Button>
                 </div>
             </SidebarFooter>
